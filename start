@@ -1,0 +1,22 @@
+#!/bin/zsh
+
+# Start the Gödel Judge application
+
+echo "Starting Gödel Judge..."
+
+# Start the dev server in the background
+npm run dev &
+
+# Save the process ID
+echo $! > .dev-server.pid
+
+# Wait for server to be ready
+echo "Waiting for server to start..."
+sleep 3
+
+# Open the browser
+echo "Opening browser..."
+open http://localhost:5173/
+
+echo "✓ Gödel Judge is running at http://localhost:5173/"
+echo "✓ Run './stop' to stop the server"

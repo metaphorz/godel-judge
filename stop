@@ -1,0 +1,26 @@
+#!/bin/zsh
+
+# Stop the Gödel Judge application
+
+echo "Stopping Gödel Judge..."
+
+# Check if PID file exists
+if [ -f .dev-server.pid ]; then
+    # Read the PID
+    PID=$(cat .dev-server.pid)
+
+    # Kill the process and its children
+    pkill -P $PID 2>/dev/null
+    kill $PID 2>/dev/null
+
+    # Remove the PID file
+    rm .dev-server.pid
+
+    echo "✓ Server stopped"
+else
+    # Fallback: kill any node process running vite
+    pkill -f "vite" 2>/dev/null
+    echo "✓ Server stopped (using fallback method)"
+fi
+
+echo "✓ Gödel Judge has been shut down"
