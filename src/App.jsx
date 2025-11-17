@@ -16,6 +16,7 @@ function App() {
   const [judge, setJudge] = useState('gpt')
   const [workerCount, setWorkerCount] = useState(3)
   const [selectedWorkers, setSelectedWorkers] = useState(['claude', 'grok', 'kimi'])
+  const [extendedReport, setExtendedReport] = useState(false)
   const [prompt, setPrompt] = useState('')
   const [output, setOutput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -127,6 +128,8 @@ function App() {
 
       // Prepare judge prompt with dynamic majority logic
       const majorityCount = workerCount === 3 ? 2 : workerCount === 5 ? '3 or 4' : Math.ceil(workerCount / 2)
+      const enhancedPrompt = `Use your deep thinking-based response to this prompt and avoid submitting an analysis from elsewhere. In legal language, you are not to use hearsay.\n\n${prompt}`
+
       const judgePrompt = `You are a judge evaluating responses from ${workerCount} AI models based on two criteria inspired by Gödel's work in mathematical logic:
 
 1. SOUNDNESS (Correctness): Analyze where models agree. When ${majorityCount} or more models make similar points, assume soundness and mark as majority agreement. When all models agree, that is especially sound.
@@ -162,8 +165,32 @@ Format your response clearly with these section headers.`
       const judgeModel = MODELS[judge]
       const judgeResponse = await callOpenRouter(judgeModel.id, judgePrompt)
 
+      // Build PRELUDE section with exact content if extended report is enabled
+      const preludeSection = extendedReport ? `## PRELUDE
+
+### Original Prompt
+${prompt}
+
+### Judge Prompt (sent to each worker)
+${enhancedPrompt}
+
+### Individual Worker Reports
+${workerResults.map((r, idx) => `
+#### Worker ${idx + 1}: [${r.key}] ${r.name}
+
+${r.response || '[No response received]'}
+`).join('\n\n---\n\n')}
+
+---
+
+` : ''
+
       // Display final output
-      const finalOutput = `=== GÖDEL JUDGE ANALYSIS ===\nJudge: ${judgeModel.fullName} (${judge})\nWorkers: ${workerResults.map(r => `${r.name} (${r.key})`).join(', ')}\n\n${judgeResponse}`
+      const finalOutput = `=== GÖDEL JUDGE ANALYSIS ===
+Judge: ${judgeModel.fullName} (${judge})
+Workers: ${workerResults.map(r => `${r.name} (${r.key})`).join(', ')}
+
+${preludeSection}${judgeResponse}`
 
       setOutput(finalOutput)
 
@@ -271,6 +298,18 @@ Format your response clearly with these section headers.`
               </label>
             ))}
           </div>
+        </div>
+
+        <div className="section">
+          <h3>Extended Report</h3>
+          <label className="worker-checkbox">
+            <input
+              type="checkbox"
+              checked={extendedReport}
+              onChange={(e) => setExtendedReport(e.target.checked)}
+            />
+            <span>Include prelude (original prompt, judge prompt, and individual worker reports)</span>
+          </label>
         </div>
 
         <div className="section">

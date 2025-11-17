@@ -23,4 +23,8 @@ else
     echo "✓ Server stopped (using fallback method)"
 fi
 
+# Clear port 5173 to ensure it's fully released
+lsof -ti:5173 | xargs kill -9 2>/dev/null
+echo "✓ Port 5173 cleared"
+
 echo "✓ Gödel Judge has been shut down"
