@@ -37,4 +37,5 @@ echo "Opening browser..."
 open http://localhost:5173/
 
 echo "✓ Gödel Judge is running at http://localhost:5173/"
-echo "✓ Run './stop' to stop the server"
+echo ""
+echo "To stop: './stop' (or just run './start' again - it handles cleanup automatically)"

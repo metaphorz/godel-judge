@@ -1,6 +1,7 @@
 #!/bin/zsh
 
 # Stop the Gödel Judge application
+# Note: This script is optional - you can just run ./start and it will handle cleanup automatically
 
 echo "Stopping Gödel Judge..."
 
@@ -28,3 +29,5 @@ lsof -ti:5173 | xargs kill -9 2>/dev/null
 echo "✓ Port 5173 cleared"
 
 echo "✓ Gödel Judge has been shut down"
+echo ""
+echo "ℹ  Tip: You can run './start' directly next time - it handles cleanup automatically"
