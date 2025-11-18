@@ -177,7 +177,7 @@ The judge's analysis is displayed in markdown format with these sections:
 
 ## License
 
-This project is open source. Feel free to modify and distribute.
+This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
 
 ---
 
