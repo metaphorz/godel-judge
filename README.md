@@ -22,7 +22,7 @@ A final synthesized report is presented in markdown format to the user.
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/godel-judge.git
+   git clone https://github.com/metaphorz/godel-judge.git
    cd godel-judge
    ```
 
