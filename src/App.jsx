@@ -21,6 +21,7 @@ function App() {
   const [output, setOutput] = useState('')
   const [loading, setLoading] = useState(false)
   const [history, setHistory] = useState([])
+  const [attachedFiles, setAttachedFiles] = useState([])
 
   // Load history from localStorage
   useEffect(() => {
@@ -106,11 +107,20 @@ function App() {
     setOutput('Processing...\n\n')
 
     try {
+      // Build the full prompt with file contents if any
+      let fullPrompt = prompt
+      if (attachedFiles.length > 0) {
+        fullPrompt += '\n\n--- Attached Files ---\n\n'
+        attachedFiles.forEach(file => {
+          fullPrompt += `File: ${file.name}\n\`\`\`\n${file.content}\n\`\`\`\n\n`
+        })
+      }
+
       // Call all workers in parallel
       setOutput('Sending prompt to workers...\n\n')
       const workerPromises = selectedWorkers.map(async (workerKey) => {
         const model = MODELS[workerKey]
-        const enhancedPrompt = `Use your deep thinking-based response to this prompt and avoid submitting an analysis from elsewhere. In legal language, you are not to use hearsay.\n\n${prompt}`
+        const enhancedPrompt = `Use your deep thinking-based response to this prompt and avoid submitting an analysis from elsewhere. In legal language, you are not to use hearsay.\n\n${fullPrompt}`
         const response = await callOpenRouter(
           model.id,
           enhancedPrompt
@@ -128,14 +138,13 @@ function App() {
 
       // Prepare judge prompt with dynamic majority logic
       const majorityCount = workerCount === 3 ? 2 : workerCount === 5 ? '3 or 4' : Math.ceil(workerCount / 2)
-      const enhancedPrompt = `Use your deep thinking-based response to this prompt and avoid submitting an analysis from elsewhere. In legal language, you are not to use hearsay.\n\n${prompt}`
 
       const judgePrompt = `You are a judge evaluating responses from ${workerCount} AI models based on two criteria inspired by Gödel's work in mathematical logic:
 
 1. SOUNDNESS (Correctness): Analyze where models agree. When ${majorityCount} or more models make similar points, assume soundness and mark as majority agreement. When all models agree, that is especially sound.
 2. COMPLETENESS: Identify where responses complement each other with valid but different perspectives.
 
-Original Prompt: "${prompt}"
+Original Prompt: "${fullPrompt}"
 
 Worker Responses:
 ${workerResults.map(r => `
@@ -166,13 +175,14 @@ Format your response clearly with these section headers.`
       const judgeResponse = await callOpenRouter(judgeModel.id, judgePrompt)
 
       // Build PRELUDE section with exact content if extended report is enabled
+      const enhancedPromptForDisplay = `Use your deep thinking-based response to this prompt and avoid submitting an analysis from elsewhere. In legal language, you are not to use hearsay.\n\n${fullPrompt}`
       const preludeSection = extendedReport ? `## PRELUDE
 
 ### Original Prompt
-${prompt}
+${fullPrompt}
 
 ### Judge Prompt (sent to each worker)
-${enhancedPrompt}
+${enhancedPromptForDisplay}
 
 ### Individual Worker Reports
 ${workerResults.map((r, idx) => `
@@ -233,6 +243,38 @@ ${preludeSection}${judgeResponse}`
     link.download = filename
     link.click()
     URL.revokeObjectURL(url)
+  }
+
+  const handleFileSelect = async (event) => {
+    const files = Array.from(event.target.files)
+
+    const filePromises = files.map(file => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          resolve({
+            name: file.name,
+            content: e.target.result
+          })
+        }
+        reader.onerror = reject
+        reader.readAsText(file)
+      })
+    })
+
+    try {
+      const newFiles = await Promise.all(filePromises)
+      setAttachedFiles([...attachedFiles, ...newFiles])
+    } catch (error) {
+      console.error('Error reading files:', error)
+    }
+
+    // Reset the input so the same file can be selected again
+    event.target.value = ''
+  }
+
+  const removeFile = (index) => {
+    setAttachedFiles(attachedFiles.filter((_, i) => i !== index))
   }
 
   return (
@@ -314,12 +356,45 @@ ${preludeSection}${judgeResponse}`
 
         <div className="section">
           <h3>Prompt</h3>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Enter your prompt here..."
-            rows="8"
-          />
+          <div className="prompt-container">
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Enter your prompt here..."
+              rows="8"
+            />
+            <input
+              type="file"
+              id="file-input"
+              multiple
+              onChange={handleFileSelect}
+              style={{ display: 'none' }}
+            />
+            <button
+              className="attach-file-btn"
+              onClick={() => document.getElementById('file-input').click()}
+              title="Attach files"
+            >
+              +
+            </button>
+          </div>
+          {attachedFiles.length > 0 && (
+            <div className="attached-files">
+              <h4>Attached Files:</h4>
+              {attachedFiles.map((file, index) => (
+                <div key={index} className="attached-file">
+                  <span className="file-name">{file.name}</span>
+                  <button
+                    className="remove-file-btn"
+                    onClick={() => removeFile(index)}
+                    title="Remove file"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <button
             onClick={handleSubmit}
             disabled={loading || !prompt.trim()}

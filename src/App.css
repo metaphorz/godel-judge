@@ -328,3 +328,94 @@ textarea:focus {
 .output-area em {
   font-style: italic;
 }
+
+/* File attachment styles */
+.prompt-container {
+  position: relative;
+}
+
+.attach-file-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+
+.attach-file-btn:hover {
+  background-color: #0052a3;
+}
+
+.attached-files {
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.attached-files h4 {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.attached-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background-color: #fff;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  border: 1px solid #e0e0e0;
+}
+
+.attached-file:last-child {
+  margin-bottom: 0;
+}
+
+.file-name {
+  font-size: 13px;
+  color: #000;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remove-file-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+
+.remove-file-btn:hover {
+  background-color: #c82333;
+}
