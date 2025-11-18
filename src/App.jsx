@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown'
 
 const MODELS = {
   gpt: { name: 'OpenAI', fullName: 'ChatGPT 5.1', id: 'openai/gpt-5.1' },
-  gemini: { name: 'Google', fullName: 'Gemini 2.5 Pro', id: 'google/gemini-2.5-pro' },
+  gemini: { name: 'Google', fullName: 'Gemini 3 Pro Preview', id: 'google/gemini-3-pro-preview' },
   claude: { name: 'Anthropic', fullName: 'Claude 4.5 Sonnet', id: 'anthropic/claude-sonnet-4.5' },
   grok: { name: 'Grok', fullName: 'Grok 4', id: 'x-ai/grok-4' },
   kimi: { name: 'Kimi', fullName: 'Kimi K2 Thinking', id: 'moonshotai/kimi-k2-thinking' },

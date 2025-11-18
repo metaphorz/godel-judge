@@ -69,7 +69,7 @@ The application features a two-pane interface:
 ### Left Pane: Configuration
 
 1. **Select Judge** - Choose which LLM will serve as the judge
-   - Options: GPT-5.1, Gemini 2.5 Pro, Claude 4.5 Sonnet, Grok 4, Kimi K2, Qwen3 VL
+   - Options: GPT-5.1, Gemini 3 Pro Preview, Claude 4.5 Sonnet, Grok 4, Kimi K2, Qwen3 VL
 
 2. **Worker Count** - Select how many workers to use
    - 3 Workers (default)
@@ -126,7 +126,7 @@ The judge's analysis is displayed in markdown format with these sections:
 | Key | Model Name | Provider |
 |-----|------------|----------|
 | gpt | ChatGPT 5.1 | OpenAI |
-| gemini | Gemini 2.5 Pro | Google |
+| gemini | Gemini 3 Pro Preview | Google |
 | claude | Claude 4.5 Sonnet | Anthropic |
 | grok | Grok 4 | X.AI |
 | kimi | Kimi K2 Thinking | Moonshot AI |
