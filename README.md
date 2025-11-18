@@ -20,20 +20,28 @@ A final synthesized report is presented in markdown format to the user.
 
 ## Installation
 
-1. Clone or download this repository
-2. Navigate to the project directory:
+1. Clone this repository:
    ```bash
+   git clone https://github.com/yourusername/godel-judge.git
    cd godel-judge
    ```
-3. Install dependencies:
+
+2. Install dependencies:
    ```bash
    npm install
    ```
-4. Create a `.env` file in the `godel-judge` directory with your OpenRouter API key:
+
+3. Create a `.env` file in the `godel-judge` directory with your OpenRouter API key:
    ```bash
    VITE_OPENROUTER_API_KEY=your_api_key_here
    ```
    Note: The variable must be prefixed with `VITE_` for Vite to load it.
+
+4. Start the application:
+   ```bash
+   ./start          # macOS/Linux
+   start.bat        # Windows
+   ```
 
 ## Running the Application
 
