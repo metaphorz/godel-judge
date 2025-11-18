@@ -281,6 +281,7 @@ ${preludeSection}${judgeResponse}`
     <div className="app">
       <div className="left-pane">
         <h1>Gödel Judge</h1>
+        <p className="credit">Co-Created by Paul Fishwick and Claude Code</p>
 
         <div className="section">
           <h3>Select Judge</h3>

@@ -36,8 +36,15 @@ body {
 
 h1 {
   color: #000;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   font-size: 28px;
+}
+
+.credit {
+  color: #666;
+  font-size: 12px;
+  margin-bottom: 20px;
+  font-style: italic;
 }
 
 h2 {

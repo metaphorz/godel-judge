@@ -29,11 +29,11 @@ A final synthesized report is presented in markdown format to the user.
    ```bash
    npm install
    ```
-4. Create a `.env` file with your OpenRouter API key:
+4. Create a `.env` file in the `godel-judge` directory with your OpenRouter API key:
    ```bash
-   OPENROUTER_API_KEY=your_api_key_here
+   VITE_OPENROUTER_API_KEY=your_api_key_here
    ```
-   The `.env` file can be located in your home directory or the current directory.
+   Note: The variable must be prefixed with `VITE_` for Vite to load it.
 
 ## Running the Application
 
@@ -159,7 +159,8 @@ The judge's analysis is displayed in markdown format with these sections:
 - Just run `./start` (or `start.bat`) - it automatically handles cleanup
 
 **API errors?**
-- Verify your `.env` file contains a valid `OPENROUTER_API_KEY`
+- Verify your `.env` file contains a valid `VITE_OPENROUTER_API_KEY`
+- Make sure the variable name starts with `VITE_` prefix
 - Check your OpenRouter account has sufficient credits
 
 **Workers not responding?**
