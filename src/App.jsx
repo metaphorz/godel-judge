@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import { callOpenRouter } from './api/openrouter'
 import ReactMarkdown from 'react-markdown'
@@ -22,6 +22,8 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [history, setHistory] = useState([])
   const [attachedFiles, setAttachedFiles] = useState([])
+  const [workerProgress, setWorkerProgress] = useState({})
+  const startTimesRef = useRef({})
 
   // Load history from localStorage
   useEffect(() => {
@@ -94,6 +96,36 @@ function App() {
     }
   }, [workerCount, judge])
 
+  // Helper function to add timeout to promises
+  const withTimeout = (promise, ms) => {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms)
+      )
+    ])
+  }
+
+  // Helper function to format progress display
+  const formatProgress = (progress, startTimes) => {
+    let progressText = '**Worker Progress:**\n\n'
+    Object.entries(progress).forEach(([key, info]) => {
+      const model = MODELS[key]
+      const elapsed = startTimes[key] ? ((Date.now() - startTimes[key]) / 1000).toFixed(1) : '0.0'
+
+      if (info.status === 'completed') {
+        progressText += `✓ [${key}] ${model.fullName} - Completed (${elapsed}s)\n\n`
+      } else if (info.status === 'pending') {
+        progressText += `⏱ [${key}] ${model.fullName} - In progress... (${elapsed}s)\n\n`
+      } else if (info.status === 'timeout') {
+        progressText += `⚠ [${key}] ${model.fullName} - Timeout (${elapsed}s)\n\n`
+      } else if (info.status === 'error') {
+        progressText += `❌ [${key}] ${model.fullName} - Error: ${info.error}\n\n`
+      }
+    })
+    return progressText
+  }
+
   const handleSubmit = async () => {
     if (!prompt.trim()) return
 
@@ -116,25 +148,90 @@ function App() {
         })
       }
 
-      // Call all workers in parallel
-      setOutput('Sending prompt to workers...\n\n')
+      // Initialize progress tracking
+      const initialProgress = {}
+      startTimesRef.current = {}
+      selectedWorkers.forEach(key => {
+        initialProgress[key] = { status: 'pending' }
+        startTimesRef.current[key] = Date.now()
+      })
+      setWorkerProgress(initialProgress)
+
+      // Display initial progress
+      setOutput('**Processing...**\n\n' + formatProgress(initialProgress, startTimesRef.current))
+
+      // Set up progress update interval
+      const progressInterval = setInterval(() => {
+        setWorkerProgress(current => {
+          setOutput('**Processing...**\n\n' + formatProgress(current, startTimesRef.current))
+          return current
+        })
+      }, 1000)
+
+      // Call all workers in parallel with timeout
+      const TIMEOUT_MS = 120000 // 120 seconds
       const workerPromises = selectedWorkers.map(async (workerKey) => {
         const model = MODELS[workerKey]
         const enhancedPrompt = `Use your deep thinking-based response to this prompt and avoid submitting an analysis from elsewhere. In legal language, you are not to use hearsay.\n\n${fullPrompt}`
-        const response = await callOpenRouter(
-          model.id,
-          enhancedPrompt
-        )
-        return {
-          key: workerKey,
-          name: model.fullName,
-          response: response
+
+        console.log(`[${workerKey}] Starting request at ${new Date().toISOString()}`)
+
+        try {
+          const response = await withTimeout(
+            callOpenRouter(model.id, enhancedPrompt),
+            TIMEOUT_MS
+          )
+
+          console.log(`[${workerKey}] Completed successfully at ${new Date().toISOString()}`)
+
+          // Update progress on success
+          setWorkerProgress(prev => ({
+            ...prev,
+            [workerKey]: { status: 'completed' }
+          }))
+
+          return {
+            key: workerKey,
+            name: model.fullName,
+            response: response
+          }
+        } catch (error) {
+          console.log(`[${workerKey}] Failed with error: ${error.message} at ${new Date().toISOString()}`)
+
+          // Update progress on error/timeout
+          const isTimeout = error.message.includes('Timeout')
+          setWorkerProgress(prev => ({
+            ...prev,
+            [workerKey]: {
+              status: isTimeout ? 'timeout' : 'error',
+              error: error.message
+            }
+          }))
+          throw error
         }
       })
 
-      const workerResults = await Promise.all(workerPromises)
+      const results = await Promise.allSettled(workerPromises)
+      clearInterval(progressInterval)
 
-      setOutput(`Workers completed. Sending to judge for analysis...\n\n`)
+      // Filter successful results
+      const workerResults = results
+        .filter(r => r.status === 'fulfilled')
+        .map(r => r.value)
+
+      // Check if we have minimum required workers
+      const minRequired = workerCount === 3 ? 2 : 4
+      if (workerResults.length < minRequired) {
+        const finalProgress = formatProgress(workerProgress, startTimesRef.current)
+        setOutput(`**Error: Insufficient workers responded**\n\n${finalProgress}\n\nRequired: ${minRequired}, Received: ${workerResults.length}\n\nPlease try again.`)
+        setLoading(false)
+        return
+      }
+
+      // Show final progress and proceed to judge
+      const completedCount = workerResults.length
+      const totalCount = selectedWorkers.length
+      setOutput(`**Worker Progress:**\n\n${formatProgress(workerProgress, startTimesRef.current)}\n**Workers completed: ${completedCount}/${totalCount}**\n\nSending to judge for analysis...\n\n`)
 
       // Prepare judge prompt with dynamic majority logic
       const majorityCount = workerCount === 3 ? 2 : workerCount === 5 ? '3 or 4' : Math.ceil(workerCount / 2)
